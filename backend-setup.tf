@@ -12,14 +12,17 @@ resource "aws_s3_bucket" "terraform_state_backend" {
     }
 }
 
-# Configure ACL for the S3 bucket
-resource "aws_s3_bucket_acl" "bucket_acl" {
+# Configure ownership controls (BucketOwnerEnforced)
+resource "aws_s3_bucket_ownership_controls" "ownership" {
     bucket = aws_s3_bucket.terraform_state_backend.id
-    acl    = "private"
+
+    rule {
+        object_ownership = "BucketOwnerEnforced"
+    }
 }
 
 # Configure server-side encryption for the S3 bucket
-resource "aws_s3_bucket_server_side_encryption_configuration" "example" {
+resource "aws_s3_bucket_server_side_encryption_configuration" "encryption" {
     bucket = aws_s3_bucket.terraform_state_backend.id
 
     rule {
@@ -34,10 +37,9 @@ resource "aws_s3_bucket_versioning" "versioning" {
     bucket = aws_s3_bucket.terraform_state_backend.id
 
     versioning_configuration {
-    status = "Enabled"
+        status = "Enabled"
     }
 }
-
 
 # Create DynamoDB Table for state locking
 resource "aws_dynamodb_table" "terraform_locks" {
@@ -55,4 +57,3 @@ resource "aws_dynamodb_table" "terraform_locks" {
         Environment = "dev"
     }
 }
-
