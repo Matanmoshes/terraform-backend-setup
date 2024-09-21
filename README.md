@@ -51,3 +51,18 @@ terraform init
 terraform apply
 ```
 
+---
+
+### Sample of `backend.tf` file:
+
+```hcl
+terraform {
+  backend "s3" {
+    bucket         = var.bucket_name         # Name of the S3 bucket for state storage
+    key            = "terraform/state.tfstate"  # Path within the S3 bucket where the state file will be stored
+    region         = "us-east-1"             # The AWS region where your S3 bucket is located
+    encrypt        = true                    # Enable encryption of the state file
+    dynamodb_table = var.dynamodb_table_name # DynamoDB table for state locking
+  }
+}
+```
