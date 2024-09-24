@@ -6,7 +6,7 @@ variable "region" {
 variable "bucket_name" {
     description = "Unique S3 bucket name for Terraform state."
     type        = string
-    default = "terraform-backend-bucket-ioioio5"
+    default = "terraform-backend-bucket-ioioio6"
 }
 
 variable "dynamodb_table_name" {
