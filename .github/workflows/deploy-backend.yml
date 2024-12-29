@@ -1,35 +1,58 @@
-name: Deploy Terraform
+name: Deploy Terraform Backend
 
 on:
-    push:
-        branches:
-        - main  
+  workflow_dispatch:
+    inputs:
+      bucket_name:
+        description: "The name of the S3 bucket for Terraform state"
+        required: true
+      table_name:
+        description: "The name of the DynamoDB table for state locking"
+        required: true
+      aws_access_key_id:
+        description: "Your AWS access key ID"
+        required: true
+      aws_secret_access_key:
+        description: "Your AWS secret access key"
+        required: true
+      aws_region:
+        description: "AWS region where resources will be deployed"
+        required: true
+        default: "us-east-1"
 
 jobs:
   terraform-deploy:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v2
+      - name: Checkout repository
+        uses: actions/checkout@v3
 
       - name: Set up Terraform
         uses: hashicorp/setup-terraform@v2
         with:
-          terraform_version: 1.4.0  # Adjust the version if necessary
+          terraform_version: 1.4.0
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v2
         with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: us-east-1  
+          aws-access-key-id: ${{ inputs.aws_access_key_id }}
+          aws-secret-access-key: ${{ inputs.aws_secret_access_key }}
+          aws-region: ${{ inputs.aws_region }}
 
       - name: Terraform Init
         run: terraform init
 
       - name: Terraform Plan
-        run: terraform plan
+        run: |
+          terraform plan \
+          -var="bucket_name=${{ inputs.bucket_name }}" \
+          -var="dynamodb_table_name=${{ inputs.table_name }}" \
+          -var="region=${{ inputs.aws_region }}"
 
       - name: Terraform Apply
-        run: terraform apply -auto-approve
+        run: |
+          terraform apply -auto-approve \
+          -var="bucket_name=${{ inputs.bucket_name }}" \
+          -var="dynamodb_table_name=${{ inputs.table_name }}" \
+          -var="region=${{ inputs.aws_region }}"
